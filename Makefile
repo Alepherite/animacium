@@ -5,9 +5,10 @@ LIBS = `pkg-config --libs gtk+-3.0 webkit2gtk-4.1`
 
 all: $(TARGET)
 
-$(TARGET): src/main.cpp src/webview.h
+# Thêm video_encoder.cpp và video_encoder.h vào target
+$(TARGET): src/main.cpp src/video_encoder.cpp src/webview.h src/video_encoder.h
 	@mkdir -p build
-	$(CXX) $(CXXFLAGS) src/main.cpp -o build/$(TARGET) $(LIBS)
+	$(CXX) $(CXXFLAGS) src/main.cpp src/video_encoder.cpp -o build/$(TARGET) $(LIBS)
 
 clean:
 	rm -rf build

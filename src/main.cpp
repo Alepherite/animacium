@@ -1,4 +1,5 @@
 #include "webview.h"
+#include "video_encoder.h" // CHỈNH SỬA: Thêm file header chứa hàm render video
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -228,6 +229,17 @@ int main(int argc, char* argv[]) {
             std::cerr << "[Backend LoadProject] Error: " << e.what() << std::endl;
         }
         return "{\"status\":\"error\"}";
+    });
+
+    // CHỈNH SỬA: Bind hàm thực thi tiến trình Render Video từ file video_encoder.h
+    w.bind("renderVideoBackend", [](std::string) -> std::string {
+        try {
+            generate_video_from_images();
+            return "{\"status\":\"success\"}";
+        } catch (const std::exception& e) {
+            std::cerr << "[Backend Render] Error: " << e.what() << std::endl;
+            return "{\"status\":\"error\"}";
+        }
     });
 
     fs::path ui_path = fs::absolute("../ui/index.html");

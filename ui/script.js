@@ -27,6 +27,7 @@ const frameStrip = document.getElementById('frame-strip');
 const frameCounter = document.getElementById('frame-counter');
 const propsPanel = document.getElementById('props-panel');
 const btnSaveProject = document.getElementById('btn-save-project'); // CHỈNH SỬA: Lấy tham chiếu nút lưu dự án
+const btnRenderVideo = document.getElementById('btn-render-video'); // CHỈNH SỬA: Lấy tham chiếu nút Render Video mới
 
 // Tự động tạo nút thêm Hình chữ nhật nếu chưa có trong HTML
 let btnAddRect = document.getElementById('btn-add-rect');
@@ -74,7 +75,7 @@ function updateUIState() {
     canvasHint.style.display = hasFrames ? 'none' : 'block';
     btnAddCircle.disabled = !hasFrames;
     btnAddRect.disabled = !hasFrames;
-    document.getElementById('btn-save-current').disabled = !hasFrames;
+    btnRenderVideo.disabled = !hasFrames; // CHỈNH SỬA: Bật tắt nút Render Video theo trạng thái project
     btnDuplicateFrame.disabled = currentFrameIndex === -1; // CHỈNH SỬA: Cập nhật trạng thái kích hoạt nút duplicate
 
     if (!hasFrames) {
@@ -410,6 +411,22 @@ function saveProjectToDisk() {
         .catch(err => console.error('[Frontend Save] Error:', err));
 }
 
+// CHỈNH SỬA: Gọi xuống backend để gom frame thành video MKV
+function renderVideoFromDisk() {
+    if (!window.renderVideoBackend) return;
+    
+    window.renderVideoBackend("")
+        .then(response => {
+            const res = (typeof response === 'object') ? response : JSON.parse(response);
+            if (res.status === 'success') {
+                alert('Render video thành công! File lưu tại /mnt/ramdisk/animacium/output.mkv');
+            } else {
+                alert('Render video thất bại.');
+            }
+        })
+        .catch(err => console.error('[Frontend Render] Error:', err));
+}
+
 // CHỈNH SỬA: Sửa lại logic nạp file cấu hình cũ từ đĩa lên hệ thống canvas
 function loadProjectFromDisk() {
     return new Promise((resolve) => {
@@ -451,7 +468,7 @@ function setupEventListeners() {
     btnAddCircle.addEventListener('click', addCircleToCurrentFrame);
     btnAddRect.addEventListener('click', addRectToCurrentFrame);
     btnSaveProject.addEventListener('click', saveProjectToDisk); // CHỈNH SỬA: Lắng nghe sự kiện click nút lưu dự án
-    document.getElementById('btn-save-current').addEventListener('click', saveCurrentFrameToDisk);
+    btnRenderVideo.addEventListener('click', renderVideoFromDisk); // CHỈNH SỬA: Lắng nghe sự kiện click nút Render Video mới
 
     canvas.addEventListener('mousedown', (e) => {
         if (currentFrameIndex === -1) return;
