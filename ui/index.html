@@ -3,27 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Webview App</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-    </style>
+    <title>Animacium Workspace</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Hello, Webview!</h1>
-    <script>
-        window.onload = () => {
-            if (window.go_backend_xu_ly) {
-                window.go_backend_xu_ly("init").then(res => {
-                    console.log("Backend response:", res);
-                });
-            } else {
-                console.error("go_backend_xu_ly is not defined.");
-            }
-        };
-    </script>
+    <div class="app-container">
+        <!-- Top Toolbar -->
+        <header class="toolbar">
+            <div class="logo">Animacium <span>PROTOTYPE</span></div>
+            <div class="controls">
+                <button id="btn-add-frame" class="btn btn-primary">➕ New Black Frame</button>
+                <button id="btn-add-circle" class="btn btn-secondary" disabled>🔵 Add Movable Circle</button>
+                <button id="btn-add-rect" class="btn btn-secondary">🟩 Add Movable Rect</button>
+                <button id="btn-save-current" class="btn btn-success" disabled>💾 Save Current Frame</button>
+            </div>
+        </header>
+
+        <!-- Main Workspace Split -->
+        <main class="workspace">
+            <!-- Canvas Area -->
+            <section class="canvas-area">
+                <div class="canvas-wrapper">
+                    <canvas id="paintCanvas" width="800" height="450"></canvas>
+                    <div id="canvas-hint" class="canvas-hint">Create or select a frame to start animating</div>
+                </div>
+            </section>
+
+            <!-- Properties Sidebar -->
+            <aside class="sidebar">
+                <h3>Element Properties</h3>
+                <div id="props-panel" class="props-panel">
+                    <p class="empty-notice">No frame selected or active element to modify.</p>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Timeline / Frame Strip at bottom -->
+        <footer class="timeline-container">
+            <div class="timeline-header">
+                <span>Timeline / Frames</span>
+                <span id="frame-counter">Frames: 0</span>
+            </div>
+            <div id="frame-strip" class="frame-strip">
+                <!-- Frame thumbnails will be injected here dynamically -->
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
