@@ -26,6 +26,7 @@ const btnAddCircle = document.getElementById('btn-add-circle');
 const frameStrip = document.getElementById('frame-strip');
 const frameCounter = document.getElementById('frame-counter');
 const propsPanel = document.getElementById('props-panel');
+const btnSaveProject = document.getElementById('btn-save-project'); // CHỈNH SỬA: Lấy tham chiếu nút lưu dự án
 
 // Tự động tạo nút thêm Hình chữ nhật nếu chưa có trong HTML
 let btnAddRect = document.getElementById('btn-add-rect');
@@ -39,9 +40,12 @@ if (!btnAddRect) {
 
 // Khởi chạy hệ thống
 function init() {
-    updateUIState();
     setupEventListeners();
-    requestAnimationFrame(renderLoop);
+    // CHỈNH SỬA: Tự động nạp lại trạng thái đã lưu từ ổ cứng lên khi ứng dụng vừa chạy
+    loadProjectFromDisk().then(() => {
+        updateUIState();
+        requestAnimationFrame(renderLoop);
+    });
 }
 
 // Vòng lặp Render chính ở max refresh rate màn hình
@@ -363,7 +367,7 @@ function updatePropertiesPanel() {
     });
 }
 
-// CHỈNH SỬA: Ẩn hồng tâm trước khi trích xuất chuỗi nhị phân ảnh
+// CHỈNH SỬA: Bổ sung số lượng frame tổng vào tham số gửi đi để backend quản lý việc xóa file dư thừa
 function saveCurrentFrameToDisk() {
     if (currentFrameIndex === -1) return;
 
@@ -378,8 +382,67 @@ function saveCurrentFrameToDisk() {
     needsUpdate = true;
 
     if (window.saveFrameBackend) {
-        window.saveFrameBackend(seqStr, dataUrl).catch(err => console.error(err));
+        // CHỈNH SỬA: Truyền thêm frames.length làm đối số thứ 3 xuống C++
+        window.saveFrameBackend(seqStr, dataUrl, frames.length).catch(err => console.error(err));
     }
+}
+
+// CHỈNH SỬA: Sửa lại logic phân tích phản hồi để tránh lỗi SyntaxError: JSON Parse error
+function saveProjectToDisk() {
+    if (!window.saveProjectBackend) return;
+
+    const projectData = {
+        frames: frames,
+        currentFrameIndex: currentFrameIndex
+    };
+
+    const jsonString = JSON.stringify(projectData);
+    window.saveProjectBackend(jsonString)
+        .then(response => {
+            // CHỈNH SỬA: Kiểm tra nếu response đã là object sẵn do thư viện ép kiểu thì không cần parse lại
+            const res = (typeof response === 'object') ? response : JSON.parse(response);
+            if (res.status === 'success') {
+                alert('Project data saved to ~/.cache/animacium/project.json');
+            } else {
+                alert('Failed to save project data.');
+            }
+        })
+        .catch(err => console.error('[Frontend Save] Error:', err));
+}
+
+// CHỈNH SỬA: Sửa lại logic nạp file cấu hình cũ từ đĩa lên hệ thống canvas
+function loadProjectFromDisk() {
+    return new Promise((resolve) => {
+        if (!window.loadProjectBackend) {
+            resolve();
+            return;
+        }
+
+        window.loadProjectBackend("")
+            .then(response => {
+                // CHỈNH SỬA: Ép kiểu an toàn tránh xung đột kiểu định dạng dữ liệu nhận về
+                const res = (typeof response === 'object') ? response : JSON.parse(response);
+                if (res.status === 'success' && res.data) {
+                    const projectData = JSON.parse(res.data);
+                    if (projectData.frames && Array.isArray(projectData.frames)) {
+                        frames = projectData.frames;
+                        currentFrameIndex = projectData.currentFrameIndex !== undefined ? projectData.currentFrameIndex : -1;
+                        activeElementIndex = -1;
+                        
+                        if (frames.length > 0 && currentFrameIndex !== -1) {
+                            selectFrame(currentFrameIndex);
+                        } else if (frames.length > 0) {
+                            selectFrame(0);
+                        }
+                    }
+                }
+                resolve();
+            })
+            .catch(err => {
+                console.error('[Frontend Load] Error:', err);
+                resolve();
+            });
+    });
 }
 
 function setupEventListeners() {
@@ -387,6 +450,7 @@ function setupEventListeners() {
     btnDuplicateFrame.addEventListener('click', duplicateCurrentFrame); // CHỈNH SỬA: Lắng nghe sự kiện click nút duplicate
     btnAddCircle.addEventListener('click', addCircleToCurrentFrame);
     btnAddRect.addEventListener('click', addRectToCurrentFrame);
+    btnSaveProject.addEventListener('click', saveProjectToDisk); // CHỈNH SỬA: Lắng nghe sự kiện click nút lưu dự án
     document.getElementById('btn-save-current').addEventListener('click', saveCurrentFrameToDisk);
 
     canvas.addEventListener('mousedown', (e) => {
