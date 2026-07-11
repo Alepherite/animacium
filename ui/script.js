@@ -21,6 +21,7 @@ let needsUpdate = true;
 
 // Tham chiếu Giao diện
 const btnAddFrame = document.getElementById('btn-add-frame');
+const btnDuplicateFrame = document.getElementById('btn-duplicate-frame'); // CHỈNH SỬA: Lấy tham chiếu nút duplicate
 const btnAddCircle = document.getElementById('btn-add-circle');
 const frameStrip = document.getElementById('frame-strip');
 const frameCounter = document.getElementById('frame-counter');
@@ -70,6 +71,7 @@ function updateUIState() {
     btnAddCircle.disabled = !hasFrames;
     btnAddRect.disabled = !hasFrames;
     document.getElementById('btn-save-current').disabled = !hasFrames;
+    btnDuplicateFrame.disabled = currentFrameIndex === -1; // CHỈNH SỬA: Cập nhật trạng thái kích hoạt nút duplicate
 
     if (!hasFrames) {
         propsPanel.innerHTML = '<p class="empty-notice">No frame selected or active element to modify.</p>';
@@ -134,6 +136,22 @@ function selectFrame(index) {
 function createNewFrame() {
     frames.push({ elements: [] });
     selectFrame(frames.length - 1);
+    saveCurrentFrameToDisk();
+}
+
+// CHỈNH SỬA: Thêm hàm sao chép frame hiện tại thành một frame mới kế tiếp
+function duplicateCurrentFrame() {
+    if (currentFrameIndex === -1) return;
+
+    // Sao chép sâu mảng vật thể của frame được chọn để tránh lỗi tham chiếu chéo
+    const currentElements = frames[currentFrameIndex].elements;
+    const clonedElements = JSON.parse(JSON.stringify(currentElements));
+
+    // Chèn frame nhân bản ngay liền sau vị trí frame hiện tại
+    frames.splice(currentFrameIndex + 1, 0, { elements: clonedElements });
+
+    // Tự động chuyển vùng chọn sang frame mới tạo
+    selectFrame(currentFrameIndex + 1);
     saveCurrentFrameToDisk();
 }
 
@@ -366,6 +384,7 @@ function saveCurrentFrameToDisk() {
 
 function setupEventListeners() {
     btnAddFrame.addEventListener('click', createNewFrame);
+    btnDuplicateFrame.addEventListener('click', duplicateCurrentFrame); // CHỈNH SỬA: Lắng nghe sự kiện click nút duplicate
     btnAddCircle.addEventListener('click', addCircleToCurrentFrame);
     btnAddRect.addEventListener('click', addRectToCurrentFrame);
     document.getElementById('btn-save-current').addEventListener('click', saveCurrentFrameToDisk);
