@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Webview App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hello, Webview!</h1>
+    <script>
+        window.onload = () => {
+            if (window.go_backend_xu_ly) {
+                window.go_backend_xu_ly("init").then(res => {
+                    console.log("Backend response:", res);
+                });
+            } else {
+                console.error("go_backend_xu_ly is not defined.");
+            }
+        };
+    </script>
+</body>
+</html>
